@@ -15,8 +15,8 @@ isRecord = False
 file_counter = 0
 # Тут считаем кадры перед тем, как записать
 frame_counter = 0
-# Будем записывать каждый 20-й кадр
-frame_step = 20
+# Будем записывать каждый 10-й кадр
+frame_step = 10
 # Директория для записи кадров
 videoDir = 'video'
 
@@ -57,11 +57,8 @@ def save_frame(img):
 
 	file_counter += 1
 
-
-#
 #
 # Обрабатываем кадры в цикле
-#
 #
 while True:
     # Получаем кадр

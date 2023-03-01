@@ -58,9 +58,6 @@ def add_person(img, coord, text):
 # Класс для работы с видеопотоком с видеокамеры
 frame = cv2.VideoCapture(0)
 
-# Создаем объект для обнаружения лица
-# face = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
 #
 # Обрабатываем кадры в цикле
 #
@@ -69,9 +66,6 @@ while True:
     status, image = frame.read()
     image_done = image.copy()
     
-    # TODO: Изменить эту функцию поиска лица 
-    # faces = face.detectMultiScale(image, scaleFactor=1.2, minNeighbors=6, minSize=(110,110))
-
     # Находим лица с помощью Face_recognition
     face_locations = face_recognition.face_locations(image, model='hog') #cnn ? # Указать название переменной, что соответствует модели импортируемой из json?
     # face_locations is now an array listing the co-ordinates of each face!

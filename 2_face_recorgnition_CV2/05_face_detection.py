@@ -1,13 +1,10 @@
-from PIL import Image, ImageEnhance
-import sys
+from PIL import Image
 import numpy as np
 import cv2
-import math
-import os
-import shutil  # Библиотека для работы с файлами
-import glob    # Расширение для использования Unix обозначений при задании пути к файлу
+
+# Для сборки НС
 import tensorflow as tf
-from tensorflow.keras.models import Model  # Импортируем модели keras: Model
+from tensorflow.keras.models import Model
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, concatenate, Activation, MaxPooling2D, Conv2D, BatchNormalization, Flatten, Dense, Dropout, Conv2DTranspose, Concatenate, Reshape
 
@@ -56,17 +53,16 @@ def add_person(img, coord, text):
     cv2.putText(face_img, text, coord, font, 1, color=(255,255,255), thickness=2)
 
     return face_img
-#
+
 #
 # Обрабатываем кадры в цикле
-#
 #
 while True:
     # Получаем кадр
     status, image = frame.read()
     image_done = image.copy()
 
-    faces = face.detectMultiScale(image, scaleFactor=1.8, minNeighbors=6, minSize=(110,110))
+    faces = face.detectMultiScale(image, scaleFactor=1.2, minNeighbors=6, minSize=(110,110))
 
     for (x, y, w, h) in faces:
         # Получить из кадра лицо и сохраняем в отдельную картинку
@@ -76,8 +72,8 @@ while True:
         img_obj = smart_crop(img_obj, (140, 140))
         img = np.array(img_obj).reshape(140,140,1)
         img = img.reshape(1,140,140,1)
-        print("!!!")
-        print(img.shape)
+        # print("!!!")
+        # print(img.shape)
         # Подаем лицо на распознавание в нейросеть
         prediction = model.predict(img)
         person = np.argmax(prediction[0])
@@ -93,13 +89,10 @@ while True:
     if k == 27:
         break
 
-    # Обрабатываем нажатие клавиши r, которая включает или выключает запись видео
-    if k == 114:
-        if not isRecord:
-            start_recording()  # Начинаем запись
-            isRecord = True
-        else:
-            isRecord = False
-
 frame.release()
 cv2.destroyAllWindows()
+
+# ВЫВОД: Распознавание с использованием модели и весов полученных из Colab
+# https://colab.research.google.com/drive/1zOIL_rGxdhAzYwFJuF9h651pGSAs7-ai?usp=sharing
+# + позволяет быстро и точно определять лица.
+# - Иногда gleb распознаётся как alex
