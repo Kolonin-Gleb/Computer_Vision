@@ -11,11 +11,9 @@ from tensorflow.keras.models import Model  # Импортируем модели
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, concatenate, Activation, MaxPooling2D, Conv2D, BatchNormalization, Flatten, Dense, Dropout, Conv2DTranspose, Concatenate, Reshape
 
-# Класс для работы с видеопотоком с видеокамеры
-frame = cv2.VideoCapture(0)
+# Новые библиотеки
+import face_recognition
 
-# Создаем объект для обнаружения лица
-face = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 # Загрузка модели и весов
 mf = open("faces.json", 'r')
@@ -46,7 +44,7 @@ def smart_crop(img, target_size):
     return new_img
 
 
-# Накладываем время
+# Накладываем имя
 def add_person(img, coord, text):
     #color = (0,255,64)
     #clock_img = cv2.rectangle(img, coord, (coord[0]+20, coorde[1]+30), color, -1)
@@ -56,22 +54,35 @@ def add_person(img, coord, text):
     cv2.putText(face_img, text, coord, font, 1, color=(255,255,255), thickness=2)
 
     return face_img
-#
+
+# Класс для работы с видеопотоком с видеокамеры
+frame = cv2.VideoCapture(0)
+
+# Создаем объект для обнаружения лица
+# face = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
 #
 # Обрабатываем кадры в цикле
-#
 #
 while True:
     # Получаем кадр
     status, image = frame.read()
     image_done = image.copy()
-
+    
     # TODO: Изменить эту функцию поиска лица 
-    faces = face.detectMultiScale(image, scaleFactor=1.8, minNeighbors=6, minSize=(110,110))
+    # faces = face.detectMultiScale(image, scaleFactor=1.2, minNeighbors=6, minSize=(110,110))
 
-    for (x, y, w, h) in faces:
+    # Находим лица с помощью Face_recognition
+    face_locations = face_recognition.face_locations(image, model='hog') #cnn ? # Указать название переменной, что соответствует модели импортируемой из json?
+    # face_locations is now an array listing the co-ordinates of each face!
+
+    print(face_locations)
+    # Правый нижний, Левый верхний
+    for (top, right, bottom, left) in face_locations:
         # Получить из кадра лицо и сохраняем в отдельную картинку
-        image_face_frame = image[y:y + h, x:x + w]
+
+        # Изменить формирование квадратика по координатам
+        image_face_frame = image[top:bottom, left:right]
         image_face_frame = cv2.cvtColor(image_face_frame, cv2.COLOR_BGR2GRAY)
         img_obj = Image.fromarray(image_face_frame)
         img_obj = smart_crop(img_obj, (140, 140))
@@ -85,8 +96,8 @@ while True:
         person = np.argmax(prediction[0])
         
         # Обводим квадрат и выводим надпись, чьё лицо
-        cv2.rectangle(image_done, (x,y), (x+w,y+h), (0,255,64), 2)
-        image_done = add_person(image_done, (x, y-4), persons_list[person])
+        cv2.rectangle(image_done, (top, right), (bottom, left), (0,255,64), 2)
+        image_done = add_person(image_done, (top, right-4), persons_list[person])
 
     cv2.imshow("Face", image_done)
 
