@@ -61,6 +61,7 @@ frame = cv2.VideoCapture(0)
 #
 # Обрабатываем кадры в цикле
 #
+
 while True:
     # Получаем кадр
     status, image = frame.read()
@@ -74,7 +75,7 @@ while True:
     # Правый нижний, Левый верхний
     for (top, right, bottom, left) in face_locations:
         # Получить из кадра лицо и сохраняем в отдельную картинку
-
+        
         # Изменить формирование квадратика по координатам
         image_face_frame = image[top:bottom, left:right]
         image_face_frame = cv2.cvtColor(image_face_frame, cv2.COLOR_BGR2GRAY)
