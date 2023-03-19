@@ -41,11 +41,11 @@ while True:
     # Находим лица с помощью Face_recognition
     face_locations = face_recognition.face_locations(image, model='hog')
     # face_locations is now an array listing the co-ordinates of each face!
+    print(face_locations)
 
     # Возможность нажатия клавиши
     key = cv2.waitKey(30) # Клавиша "r или ESC"
 
-    print(face_locations)
     # Получить из кадра лицо и сохранить в отдельную картинку
     for (top, right, bottom, left) in face_locations:
         # Обводим в квадрат лицо
