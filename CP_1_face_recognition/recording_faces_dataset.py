@@ -43,7 +43,7 @@ while True:
     # face_locations is now an array listing the co-ordinates of each face!
 
     # Возможность нажатия клавиши
-    key = cv2.waitKey(30)
+    key = cv2.waitKey(30) # Клавиша "r или ESC"
 
     print(face_locations)
     # Получить из кадра лицо и сохранить в отдельную картинку
@@ -61,7 +61,7 @@ while True:
             faces_collected += 1
         else:
             break
-
+    
     cv2.imshow("Face", image_done)
 
     # Обрабатываем нажатие клавиши ESC
