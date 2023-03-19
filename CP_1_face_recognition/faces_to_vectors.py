@@ -5,10 +5,10 @@ import pickle # для сохранения данных в файл
 import face_recognition # распознавание лиц на базе dlib
 import cv2
 
-persons_list = ['gleb', 'sofia', 'alex', 'arkady'] # доступные имена
-curent_person = 'gleb' # Перед запуском съёмки человека указать его имя
+# ВАЖНО: ВСЕ ЛИЦА ИЗ БД будут записаны в один файл.
+# Этот файл будет явл. БД векторизованных лиц.
 
-imagePaths = list(paths.list_images(curent_person))
+imagePaths = list(paths.list_images('faces'))
 knownEncodings = []
 knownNames = []
 
@@ -22,10 +22,11 @@ for imagePath in imagePaths:
 
     # Находим лица с помощью Face_recognition
     # Т.к. всё изображение это и есть лицо - беру его целиком по координатам
-    boxes = (0, 140, 140, 0)
-    
+    boxes = (0, 140, 140, 0) #TODO: (top, right, bottom, left) - должно быть верно...
+
     # вычисляем вектор для каждого лица
     encodings = face_recognition.face_encodings(image, [boxes])
+
     # добавляем каждый вектор
     for encoding in encodings:
         knownEncodings.append(encoding)
@@ -34,6 +35,6 @@ for imagePath in imagePaths:
 # сохраним векторы вместе с их именами в формате словаря
 data = {"encodings": knownEncodings, "names": knownNames}
 
-f = open(f"{curent_person}.enc", "wb")
+f = open(f"faces.enc", "wb")
 f.write(pickle.dumps(data)) # для сохранения данных в файл используем метод pickle
 f.close()

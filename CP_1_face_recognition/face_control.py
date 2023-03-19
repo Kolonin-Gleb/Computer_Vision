@@ -4,19 +4,19 @@
 
 # План решения:
 # Взять лицо проходящего человека из видеопотока.
-# Определить кому оно принадлежит. // TODO: В каком колабе есть код для этого?
+# Определить кому оно принадлежит. 
+# TODO: В каком колабе есть код для этого?
 # Сохранить лицо в файл с именем вида кто_дата_время.jpg
 
-from PIL import Image
-import numpy as np
-import cv2
-import os
+from PIL import Image # Для обработки фото
+import cv2 # Для работы с видео
+import face_recognition # Для распознавания лиц
 
-# Новые библиотеки
-import face_recognition
+# Для сохранения файла с нужной датой и временем
+import datetime as dt
+
 
 persons_list = ['gleb', 'sofia', 'alex', 'arkady'] # доступные имена
-
 curent_person = None # Перед запуском съёмки человека указать его имя
 
 # Функция умной обрезки
@@ -39,8 +39,6 @@ def smart_crop(img, target_size):
 # Класс для работы с видеопотоком с видеокамеры
 frame = cv2.VideoCapture(0)
 
-faces_collected = 0 # Количество собранных лиц
-
 # Обрабатываем кадры в цикле
 while True:
     # Получаем кадр
@@ -51,28 +49,37 @@ while True:
     face_locations = face_recognition.face_locations(image, model='hog')
     # face_locations is now an array listing the co-ordinates of each face!
 
-    # Возможность нажатия клавиши
-    key = cv2.waitKey(30) # Клавиша "r"
-
     print(face_locations)
     # Получить из кадра лицо и сохранить в отдельную картинку
     for (top, right, bottom, left) in face_locations:
         # Обводим в квадрат лицо
-        cv2.rectangle(image_done, (top, right), (bottom, left), (0,255,64), 2)
+        cv2.rectangle(image_done, (top, right), (bottom, left), (0,255,64), 2) # В правильном ли порядке расставил слова?
         
         image_face_frame = image[top:bottom, left:right]
-        image_face_frame = cv2.cvtColor(image_face_frame, cv2.COLOR_BGR2GRAY) # ПЕРЕВОД В НУЖНОЕ ЦВЕТОВОЕ ПРЕДСТАВЛЕНИЕ
+        # ПЕРЕВОД В НУЖНОЕ ЦВЕТОВОЕ ПРЕДСТАВЛЕНИЕ
+        image_face_frame = cv2.cvtColor(image_face_frame, cv2.COLOR_BGR2GRAY)
+        # image_face_frame = cv2.cvtColor(image_face_frame, cv2.COLOR_GRAY2RGB) # Из GRAY в RGB нужно ли?
         img_obj = Image.fromarray(image_face_frame)
-        img_obj = smart_crop(img_obj, (140, 140)) # Изображения для сохранения и будущей векторизации
+        img_obj = smart_crop(img_obj, (140, 140)) # Изображение для сохранения в БД
 
-        if faces_collected <= 10 and key == 114: # Обработка клавиши "r" (114) для сохранения фото
-            img_obj.save(f"faces/{curent_person}/{faces_collected}.jpg")
-            faces_collected += 1
-        else:
-            break
+        # Получение вектора текущего лица
+        
 
-    cv2.imshow("Face", image_done)
 
+        # ============= Сравнение полученного вектора с имеющимися в БД векторов лиц =============
+
+
+
+        # curent_person = None # Нужно распознать пойманное лицо исп. БД векторов.
+
+        current_time = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        file_name = f"{curent_person}_{current_time}.jpg"
+        img_obj.save(f"face_control/{file_name}")
+
+    cv2.imshow("Face_Control", image_done)
+
+    # Возможность нажатия клавиши
+    key = cv2.waitKey(30)
     # Обрабатываем нажатие клавиши ESC
     if key == 27:
         break
