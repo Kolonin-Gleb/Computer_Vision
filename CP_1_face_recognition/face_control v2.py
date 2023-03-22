@@ -20,7 +20,8 @@ import datetime as dt
 
 
 persons_list = ['gleb', 'sofia', 'alex', 'arkady'] # доступные имена
-curent_person = None # Перед запуском съёмки человека указать его имя
+# Перед запуском съёмки человека указать его имя
+curent_person = None
 
 # Функция умной обрезки
 def smart_crop(img, target_size):

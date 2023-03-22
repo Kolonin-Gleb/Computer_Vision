@@ -6,9 +6,29 @@ import os
 # Новые библиотеки
 import face_recognition
 
-persons_list = ['gleb', 'sofia', 'alex', 'arkady'] # доступные имена
+# =============== Установка имени человека для добавления в БД ===============
+with open(r'faces\faces.txt', 'r') as f:
+    persons = f.readlines()
 
-curent_person = 'gleb' # Перед запуском съёмки человека указать его имя
+persons = [person.strip() for person in persons]
+curent_person = ''
+
+print("Введите имя человека, которого будете снимать: ")
+curent_person = input()
+
+while curent_person == '' or curent_person in persons:
+    print("Человек с этим именем уже есть в БД лиц!\n\n")
+    print("Введите имя человека, которого будете снимать: ")
+    curent_person = input()
+
+# Перед запуском съёмки человека указать его имя
+with open(r'faces\faces.txt', 'a') as f:
+    f.write(curent_person)
+
+# Создание папки под пользователя
+os.mkdir(f'faces/{curent_person}')
+
+
 
 # Функция умной обрезки
 def smart_crop(img, target_size):
@@ -31,12 +51,16 @@ def smart_crop(img, target_size):
 frame = cv2.VideoCapture(0)
 
 faces_collected = 0 # Количество собранных лиц
+faces_needed = 10
 
 # Обрабатываем кадры в цикле
 while True:
     # Получаем кадр
     status, image = frame.read()
     image_done = image.copy()
+
+    font = cv2.FONT_HERSHEY_DUPLEX
+    cv2.putText(image_done, f"Faces collected = {faces_collected} out of {faces_needed}", (20, 28), font, 0.5, color=(250, 0, 0), thickness=1)
     
     # Находим лица с помощью Face_recognition
     face_locations = face_recognition.face_locations(image, model='hog')
@@ -56,7 +80,7 @@ while True:
         img_obj = Image.fromarray(image_face_frame)
         img_obj = smart_crop(img_obj, (140, 140)) # Изображения для сохранения и будущей векторизации
 
-        if faces_collected <= 10 and key == 114: # Обработка клавиши "r" (114) для сохранения фото
+        if faces_collected <= faces_needed and key == 114: # Обработка клавиши "r" (114) для сохранения фото
             img_obj.save(f"faces/{curent_person}/{faces_collected}.jpg")
             faces_collected += 1
         else:

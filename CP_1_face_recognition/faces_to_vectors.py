@@ -5,17 +5,30 @@ import pickle # для сохранения данных в файл
 import face_recognition # распознавание лиц на базе dlib
 import cv2
 
-# ВАЖНО: ВСЕ ЛИЦА ИЗ БД будут записаны в один файл.
-# Этот файл будет явл. БД векторизованных лиц.
+# =============== Установка имени человека для добавления в БД ===============
+with open(r'faces\faces.txt', 'r') as f:
+    persons = f.readlines()
 
-imagePaths = list(paths.list_images('faces'))
+persons = [person.strip() for person in persons]
+curent_person = ''
+
+print("Введите имя человека, фотографии которого будут переведены в вектор: ")
+curent_person = input()
+
+while curent_person == '' or curent_person not in persons:
+    print("Человек с этим именем отсутствует в БД лиц!\n\n")
+    print("Введите имя человека, фотографии которого будут переведены в вектор: ")
+    curent_person = input()
+
+
+imagePaths = list(paths.list_images(f'faces/{curent_person}'))
 knownEncodings = []
 knownNames = []
 
 # перебираем все папки с изображениями
 for imagePath in imagePaths:
     # Извлекаем имя человека из названия папки
-    name = imagePath.split(os.path.sep)[-2]
+    name = curent_person
 
     # загрузка ч\б изображения
     image = cv2.imread(imagePath)
@@ -35,6 +48,6 @@ for imagePath in imagePaths:
 # сохраним векторы вместе с их именами в формате словаря
 data = {"encodings": knownEncodings, "names": knownNames}
 
-f = open(f"faces.enc", "wb")
-f.write(pickle.dumps(data)) # для сохранения данных в файл используем метод pickle
-f.close()
+with open(f"vectors/{curent_person}.enc", "wb") as f:
+    f.write(pickle.dumps(data)) # для сохранения данных в файл используем метод pickle
+    f.close()
