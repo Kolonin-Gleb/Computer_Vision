@@ -1,27 +1,18 @@
-# ПРИМЕЧАНИЕ v2 - делаю распознавание лиц другим способом!
-
-# Задание 2
-# С помощью видеопотока распознавайте лица проходящих.
-# Фиксируйте дату и время прохода
-
-# План решения:
-# Взять лицо проходящего человека из видеопотока.
-# Определить кому оно принадлежит. 
-# TODO: В каком колабе есть код для этого?
-# Сохранить лицо в файл с именем вида кто_дата_время.jpg
-
 from PIL import Image # Для обработки фото
 import cv2 # Для работы с видео
 import face_recognition # Для распознавания лиц
 import pickle # Для БД лиц
 
+# Библиотека, содержащая функцию сравнения векторов
+from scipy.spatial.distance import pdist
+
 # Для сохранения файла с нужной датой и временем
 import datetime as dt
 
-
-persons_list = ['gleb', 'sofia', 'alex', 'arkady'] # доступные имена
-# Перед запуском съёмки человека указать его имя
-curent_person = None
+# Доступные имена
+with open(r'faces\faces.txt', 'r') as f:
+    persons = f.readlines()
+persons = [person.strip() for person in persons]
 
 # Функция умной обрезки
 def smart_crop(img, target_size):
@@ -44,7 +35,9 @@ def smart_crop(img, target_size):
 frame = cv2.VideoCapture(0)
 
 # ============= Загрузка БД векторов лиц =============
-data = pickle.loads(open('faces.enc', "rb").read())
+
+persons_to_compare = [f"vectors/{person}.enc" for person in persons]
+
 
 # Обрабатываем кадры в цикле
 while True:
@@ -54,40 +47,44 @@ while True:
     
     # ============= Поиск векторов всех лиц на изображении =============
     encodings = face_recognition.face_encodings(image)
-    names = []
-
-    # Перебираем все найденные лица
-    for encoding in encodings:
-        # Сравниваем поступившую фотографию с теми, что в базе
-        matches = face_recognition.compare_faces(data["encodings"], encoding, tolerance=0.6)
-        # tolerance=0.6 - порог срабатывания
-        
-        # По умолчанию выставим имя - неизвестен
-        name = "Unknown"
-        
-        if True in matches:
-            # Сравниваем изображение лица с данными в нашей базе (при совпадении мы получаем True)
-            matchedIdxs = [i for (i, b) in enumerate(matches) if b]
-            counts = {}
-            # Пробегаемся по всем найденным лицам
-            for i in matchedIdxs:
-                # Находим в базе имя человека
-                name = data["names"][i]
-                # Увеличиваем счетчик пололжительных срабатываний для данного имени
-                counts[name] = counts.get(name, 0) + 1
-
-            # Берем то имя, которое набрало наибольшее количество срабатываний
-            name = max(counts, key=counts.get)
-        
-        # Добавляем найденное имя в массив
-        names.append(name)
+    names = [] # Имена для всех найденных
+    
+    # Перебираем вектора всех найденных лиц
+    for encoding in encodings: # encoding - вектор, что нужно определить
+        for person_vector in persons_to_compare:
+            print(f"Идёт сравнение с вектором = {person_vector}")
+            person_vector = pickle.loads(open(person_vector, "rb").read()) # person_vector - Загрузка вектора из БД для проверки
+            
+            # Сравниваем вектор с теми, что есть в базе.
+            matches = face_recognition.compare_faces(person_vector["encodings"], encoding, tolerance=0.6)
+            # tolerance=0.6 (по умолч.) - порог срабатывания. Чем меньше, тем строже совпадение
+            
+            # По умолчанию выставим имя - неизвестен
+            name = "Unknown"
+            
+            if True in matches:
+                # Сравниваем изображение лица с данными в нашей базе (при совпадении мы получаем True)
+                matchedIdxs = [i for (i, b) in enumerate(matches) if b]
+                counts = {}
+                # Пробегаемся по всем найденным лицам
+                for i in matchedIdxs:
+                    # Находим в базе имя человека
+                    name = person_vector["names"][i]
+                    # Увеличиваем счетчик пололжительных срабатываний для данного имени
+                    counts[name] = counts.get(name, 0) + 1
+                
+                # Берем то имя, которое набрало наибольшее количество срабатываний
+                name = max(counts, key=counts.get)
+            
+            # Добавляем найденное имя в массив
+            names.append(name)
 
     # ============= Обнаружение лиц с помощью Face_recognition =============
     face_locations = face_recognition.face_locations(image, model='hog')
     # face_locations is now an array listing the co-ordinates of each face!
     # (top, right, bottom, left) order
     # (y1    x1       y2     x2)
-    
+
     for ((top, right, bottom, left), name) in zip(face_locations, names):
         top_left = (left, top)
         bottom_right = (right, bottom)

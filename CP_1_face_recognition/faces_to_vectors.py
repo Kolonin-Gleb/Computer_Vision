@@ -29,7 +29,7 @@ knownNames = []
 for imagePath in imagePaths:
     # Извлекаем имя человека из названия папки
     name = curent_person
-
+    
     # загрузка ч\б изображения
     image = cv2.imread(imagePath)
 
