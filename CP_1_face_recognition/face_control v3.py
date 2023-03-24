@@ -8,6 +8,7 @@ from scipy.spatial.distance import pdist
 
 # Для сохранения файла с нужной датой и временем
 import datetime as dt
+import numpy as np
 
 # Доступные имена
 with open(r'faces\faces.txt', 'r') as f:
@@ -52,27 +53,27 @@ while True:
     # Перебираем вектора всех найденных лиц
     for encoding in encodings: # encoding - вектор, что нужно определить
         coefs = [] # Коэфициенты рассмотренных
-
-        for person_vector in persons_to_compare:
+        
+        for person_vector, name in zip(persons_to_compare, persons):
             print(f"Идёт сравнение с вектором = {person_vector}")
 
             # person_vector - Загрузка вектора из БД для проверки
-            person_vector = pickle.loads(open(person_vector, "rb").read())
+            person_vector = pickle.loads(open(person_vector, "rb").read()) # persons
             
-            print(encoding.shape)
-            # print(person_vector['encodings'].shape)
+            # print(encoding.shape)
+            # print(person_vector['encodings'])
             # Сравниваем вектор с теми, что есть в базе.
-            coef = pdist([encoding, person_vector['encodings']], 'euclidean') # Сравниваем два вектора
+            coef = pdist([encoding, person_vector['encodings'][0]], 'euclidean') # Сравниваем два вектора
 
             # Для того, кому принадлежит это лицо выйдет минимальный коэфициент
             coefs.append(coef[0])
-
+        
         minimal_coef_index = coefs.index(min(coefs))
         # Если минимальное совпадение > 0.6, то имеем дело с Unknown человеком
         if min(coefs) > 0.6:
             name = "Unknown"
         else:
-            name = persons_to_compare[minimal_coef_index]
+            name = persons[minimal_coef_index]
         
         # Добавление имени человека, чей вектор был нами обнаружен
         names.append(name)
